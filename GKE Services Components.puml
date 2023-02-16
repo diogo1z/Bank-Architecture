@@ -1,0 +1,88 @@
+@startuml
+
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.3.0/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title GKE Services Components
+
+Person(user, "User")
+System(app, "Mobile App")
+
+Person(mkt, "Marketing")
+
+
+System_Ext(bankPartner, "Bank Partner")
+System_Ext(plataformPartner, "Plataform Partner")
+
+Enterprise_Boundary(company, "Bank") {
+
+  System(messagingWebPage, "Communication WebPage")
+  SystemDb(redis, "Redis Database")
+  SystemDb(postgres, "PostgreSQL Database")
+
+  Container_Boundary(gke, "GKE"){
+    Container(apiGatewayContainer, "API Gateway (Kong)") {
+      Component(kong, "Kong")
+      Component(jwtPlugin, "JWT Plugin")
+      Component(aclPlugin, "ACL Plugin")
+    }
+
+    Container(authApiContainer, "Authentication API","Node.JS/Nest.JS") {
+      Component(authenticationController, "Authentication Controller")
+      Component(authenticationService, "Authentication Service")
+      Component(authenticationRepository, "Authentication Repository")
+      Component(jwtUtils, "JWT Utils")
+    }
+
+    Container(userApiContainer, "User API","Node.JS/Nest.JS") {
+      Component(userController, "User Controller")
+      Component(userService, "User Service")
+      Component(userRepository, "User Repository")
+    }
+
+    Container(generateFilesAPIContainer, "Generate Files API","Node.JS/Nest.JS") {
+      Component(generateFilesController, "Generate Files Controller")
+      Component(generateFilesService, "Generate Files Service")
+    }
+
+    Container(profileApiContainer, "Profile API","Node.JS/Nest.JS") {
+      Component(profileController, "Profile Controller")
+      Component(profileService, "Profile Service")
+      Component(profileRepository, "Profile Repository")
+    }
+
+    Container(messagingApiContainer, "Communication API","Node.JS/Nest.JS") {
+      Component(messagingController, "Communication Controller")
+      Component(messagingService, "Communication Service")
+      Component(smsSender, "SMS Sender")
+      Component(emailSender, "Email Sender")
+      Component(pushSender, "Push Sender")
+    }
+
+    Container(partnerBrokerApiContainer, "Partner Broker API","Node.JS/Nest.JS") {
+      Component(partnerBrokerController, "Partner Broker Controller")
+      Component(partnerBrokerService, "Partner Broker Service")
+      Component(bankPartnerIntegration, "Bank Partner Integration")
+      Component(plataformPartnerIntegration, "Plataform Partner Integration")
+      Component(bankPartnerProviders, "Plataform Partner Providers")
+      Component(plataformPartnerProviders, "Plataform Partner Providers")
+    }
+  }
+
+  SystemQueue(queue, "Pub/Sub System")
+  System(CloudFunctions, "Cloud Functions System", "Node.JS")
+  System(logstash, "Logstash")
+  System(kibana, "Kibana")
+  System(elasticsearch, "Elasticsearch")
+  System(grafana, "Grafana")
+  SystemDb(cloudStorage, "cloudStorage")
+
+}
+
+System_Ext(extCommunication, "Communication Send System")
+
+Rel(mkt, messagingWebPage, "Uses")
+Rel(user, app, "Uses")
+Rel(app, apiGateway, "Uses")
+Rel(messagingWebPage, apiGateway, "Uses")

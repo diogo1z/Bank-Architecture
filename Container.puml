@@ -1,0 +1,92 @@
+@startuml
+
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/v2.3.0/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Bank - Container
+
+Person(user, "User")
+System(app, "Mobile App")
+
+Person(mkt, "Marketing")
+
+
+System_Ext(bankPartner, "Bank Partner")
+System_Ext(plataformPartner, "Plataform Partner")
+
+Enterprise_Boundary(company, "Bank") {
+    System(messagingWebPage, "Communication WebPage")
+    SystemDb(redis, "Redis Database")
+    SystemDb(postgres, "PostgreSQL Database")
+    Container_Boundary(gke, "GKE"){
+        System(apiGateway, "API Gateway (Kong)")
+        System(authApi, "Authentication API")
+        System(userApi, "User API")
+        System(generateFilesAPI, "Generate Files API")
+        System(profileApi, "Profile API")
+        System(messagingApi, "Communication API")
+        System(partnerBrokerApi, "Partner Broker API")
+    }
+    SystemQueue(queue, "Pub/Sub System")
+    System(CloudFunctions, "Cloud Functions System")
+    System(logstash, "Logstash")
+    System(kibana, "Kibana")
+    System(elasticsearch, "Elasticsearch")
+    System(grafana, "Grafana")
+    SystemDb(cloudStorage, "cloudStorage")
+}
+
+System_Ext(extCommunication, "Communication Send System")
+
+Rel(mkt, messagingWebPage, "Uses")
+Rel(user, app, "Uses")
+Rel(app, apiGateway, "Uses")
+Rel(messagingWebPage, apiGateway, "Uses")
+Rel(bankPartner, apiGateway, "Uses")
+Rel(plataformPartner, apiGateway, "Uses")
+
+Rel(apiGateway, redis, "Uses")
+Rel(apiGateway, authApi, "Uses")
+Rel(apiGateway, profileApi, "Uses")
+Rel(apiGateway, messagingApi, "Uses")
+Rel(apiGateway, userApi, "Uses")
+
+Rel(partnerBrokerApi, plataformPartner, "Uses")
+Rel(partnerBrokerApi, bankPartner, "Uses")
+
+Rel(messagingApi, queue, "Publishes to")
+
+Rel(authApi, redis, "Uses")
+Rel(authApi, postgres, "Uses")
+Rel(profileApi, postgres, "Uses")
+Rel(userApi, postgres, "Uses")
+
+Rel(messagingApi, queue, "Publishes SMS to")
+Rel(messagingApi, queue, "Publishes EMAIL to")
+Rel(messagingApi, queue, "Publishes Push to")
+Rel(generateFilesAPI, queue, "Publishes GENERATE A FILE to")
+
+Rel(logstash, gke, "Receives logs from")
+Rel(logstash, queue, "Receives logs from")
+Rel(logstash, CloudFunctions, "Receives logs from")
+Rel(logstash, postgres, "Receives data from")
+
+
+Rel(kibana, elasticsearch, "Consumes data from")
+
+Rel(elasticsearch, logstash, "Receives data from")
+
+Rel(grafana, elasticsearch, "Monitora")
+Rel(grafana, gke, "Monitora")
+Rel(grafana, queue, "Monitora")
+Rel(grafana, CloudFunctions, "Monitora")
+
+Rel(queue, CloudFunctions, "Sends SMS message to")
+Rel(queue, CloudFunctions, "Sends EMAIL message to")
+Rel(queue, CloudFunctions, "Sends Push message to")
+Rel(queue, CloudFunctions, "Sends Generate a file message to")
+
+Rel(generateFilesAPI, cloudStorage, "Uses")
+Rel(CloudFunctions, cloudStorage, "Uses")
+
+@enduml
