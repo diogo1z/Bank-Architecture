@@ -15,7 +15,9 @@ System_Ext(bankPartner, "Bank Partner")
 System_Ext(plataformPartner, "Plataform Partner")
 
 Enterprise_Boundary(company, "Bank") {
-    System(messagingWebPage, "Communication WebPage")
+    Container_Boundary(cloudRun, "Cloud Run"){
+        System(messagingWebPage, "Communication WebPage")
+    }
     SystemDb(redis, "Redis Database")
     SystemDb(postgres, "PostgreSQL Database")
     Container_Boundary(gke, "GKE"){
